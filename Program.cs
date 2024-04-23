@@ -1,29 +1,35 @@
 ﻿using ImageMagick;
-using System;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
-using ImageMagick;
 
-string directoryPath = @"C:\Users\genna\OneDrive\Desktop\Test";
-string[] imageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".heic" };
 
-foreach (string filePath in Directory.GetFiles(directoryPath)) {
-    if (IsImageFile(filePath, imageExtensions)) {
-        DateTime originalDateTime = GetOriginalDateTime(filePath);
-                    
-        if (originalDateTime != DateTime.MinValue) {
-            File.SetCreationTime(filePath, originalDateTime);
-            Console.WriteLine($"Modified creation date of {filePath} to {originalDateTime}");
-        }
-        else {
-            Console.WriteLine($"Failed to read EXIF data from {filePath}");
+if (args.Length <= 0)
+{
+    Console.WriteLine("This program requires the search path as input parameter!\n");
+} else
+{
+    string directoryPath = @"C:\Users\genna\OneDrive\Desktop\Test";
+    string[] imageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".heic" };
+
+    foreach (string filePath in Directory.GetFiles(directoryPath))
+    {
+        if (IsImageFile(filePath, imageExtensions))
+        {
+            DateTime originalDateTime = GetOriginalDateTime(filePath);
+
+            if (originalDateTime != DateTime.MinValue)
+            {
+                File.SetCreationTime(filePath, originalDateTime);
+                Console.WriteLine($"Modified creation date of {filePath} to {originalDateTime}");
+            }
+            else
+            {
+                Console.WriteLine($"Failed to read EXIF data from {filePath}");
+            }
         }
     }
-}
+} 
 
-System.Console.WriteLine("Press <ENTER> to quit...");
-System.Console.ReadLine();
 
 // Check if the file is a Photo
 static bool IsImageFile(string filePath, string[] imageExtensions) {
