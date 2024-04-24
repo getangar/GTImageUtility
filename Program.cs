@@ -44,7 +44,7 @@ static bool IsImageFile(string filePath, string[] imageExtensions)
         }
     }
 
-    // Se il file non è un'immagine, aggiungi il nome del file a output.txt
+    // The file is not a Photo, exporting its path in the output.txt file
     string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "output.txt");
     File.AppendAllText(outputFilePath, filePath + Environment.NewLine);
 
