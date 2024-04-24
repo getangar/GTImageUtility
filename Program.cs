@@ -8,7 +8,7 @@ if (args.Length <= 0)
     Console.WriteLine("This program requires the search path as input parameter!\n");
 } else
 {
-    string directoryPath = @"C:\Users\genna\OneDrive\Desktop\Test";
+    string directoryPath = args[0];
     string[] imageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".heic" };
 
     foreach (string filePath in Directory.GetFiles(directoryPath))
@@ -32,15 +32,22 @@ if (args.Length <= 0)
 
 
 // Check if the file is a Photo
-static bool IsImageFile(string filePath, string[] imageExtensions) {
+static bool IsImageFile(string filePath, string[] imageExtensions)
+{
     string extension = Path.GetExtension(filePath).ToLower();
-            
-    foreach (string imageExtension in imageExtensions) {
-        if (extension == imageExtension) {
+
+    foreach (string imageExtension in imageExtensions)
+    {
+        if (extension == imageExtension)
+        {
             return true;
         }
     }
-            
+
+    // Se il file non è un'immagine, aggiungi il nome del file a output.txt
+    string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "output.txt");
+    File.AppendAllText(outputFilePath, filePath + Environment.NewLine);
+
     return false;
 }
 
