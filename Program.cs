@@ -1,14 +1,45 @@
 ﻿using ImageMagick;
 
+string directoryPath = string.Empty;
+string outputFilePath = string.Empty;
+
+int batchSize = 100;
+
 if (args.Length <= 0)
 {
-    Console.WriteLine("This program requires the search path as input parameter!\n");
+    Console.WriteLine("Error: Directory path is missing. Please provide the directory path using -p option.");
+
 
     return;
 } 
 else
 {
-    string directoryPath = args[0];
+    for (int i = 0; i < args.Length; i += 2)
+    {
+        string option = args[i];
+        string value = args[i + 1];
+
+        switch (option)
+        {
+            case "-p":
+                directoryPath = value;
+                break;
+            case "-t":
+                if (!int.TryParse(value, out batchSize) || batchSize <= 0)
+                {
+                    Console.WriteLine("Invalid batch size.");
+                    return;
+                }
+                break;
+            case "-o":
+                outputFilePath = value;
+                break;
+            default:
+                Console.WriteLine($"Invalid option: {option}");
+                return;
+        }
+    }
+
     string[] imageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".heic" };
 
     List<string> filesToProcess = new List<string>(Directory.GetFiles(directoryPath));
@@ -17,8 +48,7 @@ else
 
     Console.WriteLine($"Total files to process: {totalFiles}");
 
-    // Create batches of 1000 files
-    int batchSize = 100;
+    // Create batches of files
     int numThreads = Environment.ProcessorCount;
     int filesPerThread = (int)Math.Ceiling((double)totalFiles / numThreads);
 
@@ -37,7 +67,7 @@ else
             for (int j = start; j < end; j++)
             {
                 string filePath = filesToProcess[j];
-                if (IsImageFile(filePath, imageExtensions))
+                if (IsImageFile(filePath, imageExtensions, outputFilePath))
                 {
                     DateTime originalDateTime = GetOriginalDateTime(filePath);
                     if (originalDateTime != DateTime.MinValue)
@@ -52,7 +82,7 @@ else
                     else
                     {
                         Console.WriteLine($" - Failed to read EXIF data from {filePath}");
-                        ExportToUnprocessedFilesList(filePath);
+                        ExportToUnprocessedFilesList(filePath, outputFilePath);
                     }
                 }
 
@@ -75,7 +105,7 @@ else
 
 
 // Check if the file is a Photo
-static bool IsImageFile(string filePath, string[] imageExtensions)
+static bool IsImageFile(string filePath, string[] imageExtensions, string outputFilePath)
 {
     string extension = Path.GetExtension(filePath).ToLower();
 
@@ -87,7 +117,7 @@ static bool IsImageFile(string filePath, string[] imageExtensions)
         }
     }
 
-    ExportToUnprocessedFilesList(filePath);
+    ExportToUnprocessedFilesList(filePath, outputFilePath);
 
     return false;
 }
@@ -111,9 +141,13 @@ static DateTime GetOriginalDateTime(string filePath)
 }
 
 // Export the unprocessed pictures in the output file
-static void ExportToUnprocessedFilesList(string filePath)
+static void ExportToUnprocessedFilesList(string filePath, string outputFilePath)
 {
     // The file is not a Photo, exporting its path in the output.txt file
-    string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "output.txt");
-    File.AppendAllText(outputFilePath, filePath + Environment.NewLine);
+    if (outputFilePath == string.Empty)
+    {
+        outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "output.txt");
+    }
+    
+    File.AppendAllText(outputFilePath, filePath + Environment.NewLine);   
 }
