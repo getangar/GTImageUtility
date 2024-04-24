@@ -1,33 +1,76 @@
 ﻿using ImageMagick;
-using System.Drawing;
-using System.Drawing.Imaging;
-
 
 if (args.Length <= 0)
 {
     Console.WriteLine("This program requires the search path as input parameter!\n");
-} else
+
+    return;
+} 
+else
 {
     string directoryPath = args[0];
     string[] imageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".heic" };
 
-    foreach (string filePath in Directory.GetFiles(directoryPath))
-    {
-        if (IsImageFile(filePath, imageExtensions))
-        {
-            DateTime originalDateTime = GetOriginalDateTime(filePath);
+    List<string> filesToProcess = new List<string>(Directory.GetFiles(directoryPath));
+    int filesProcessed = 0;
+    int totalFiles = filesToProcess.Count;
 
-            if (originalDateTime != DateTime.MinValue)
+    Console.WriteLine($"Total files to process: {totalFiles}");
+
+    // Create batches of 1000 files
+    int batchSize = 100;
+    int numThreads = Environment.ProcessorCount;
+    int filesPerThread = (int)Math.Ceiling((double)totalFiles / numThreads);
+
+    Console.WriteLine($"Number of threads: {numThreads}");
+
+    Task[] tasks = new Task[numThreads];
+
+
+    for (int i = 0; i < numThreads; i++)
+    {
+        int start = i * filesPerThread;
+        int end = Math.Min(start + filesPerThread, totalFiles);
+
+        tasks[i] = Task.Run(() =>
+        {
+            for (int j = start; j < end; j++)
             {
-                File.SetCreationTime(filePath, originalDateTime);
-                Console.WriteLine($"Modified creation date of {filePath} to {originalDateTime}");
+                string filePath = filesToProcess[j];
+                if (IsImageFile(filePath, imageExtensions))
+                {
+                    DateTime originalDateTime = GetOriginalDateTime(filePath);
+                    if (originalDateTime != DateTime.MinValue)
+                    {
+                        DateTime currentCreationTime = File.GetCreationTime(filePath);
+                        
+                        if (currentCreationTime != originalDateTime)
+                        {
+                            File.SetCreationTime(filePath, originalDateTime);
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($" - Failed to read EXIF data from {filePath}");
+                        ExportToUnprocessedFilesList(filePath);
+                    }
+                }
+
+                // Aggiornamento dell'avanzamento
+                lock (Console.Out)
+                {
+                    filesProcessed++;
+                    double progress = (double)filesProcessed / totalFiles * 100;
+                    Console.CursorLeft = 0;
+                    Console.Write($"Progress: {progress:F2}%");
+                }
             }
-            else
-            {
-                Console.WriteLine($"Failed to read EXIF data from {filePath}");
-            }
-        }
+        });
     }
+
+    Task.WaitAll(tasks);
+
+    Console.WriteLine("\nDone!");
 } 
 
 
@@ -44,31 +87,12 @@ static bool IsImageFile(string filePath, string[] imageExtensions)
         }
     }
 
-    // The file is not a Photo, exporting its path in the output.txt file
-    string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "output.txt");
-    File.AppendAllText(outputFilePath, filePath + Environment.NewLine);
+    ExportToUnprocessedFilesList(filePath);
 
     return false;
 }
 
 // Get the EXIF Tag "OriginalDateTime"
-static DateTime GetOriginalDateTimeOld(string filePath) {
-    using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
-    using (Image image = Image.FromStream(fs, false, false))
-    {
-        foreach (PropertyItem propItem in image.PropertyItems)
-        {
-            if (propItem.Id == 0x9003)
-            { // DateTimeOriginal tag
-                string dateTaken = System.Text.Encoding.ASCII.GetString(propItem.Value).Trim('\0');
-
-                return DateTime.ParseExact(dateTaken, "yyyy:MM:dd HH:mm:ss", null);
-            }
-        }
-    }
-            
-    return DateTime.MinValue;
-}
 static DateTime GetOriginalDateTime(string filePath)
 {
     using (MagickImage image = new MagickImage(filePath))
@@ -76,6 +100,7 @@ static DateTime GetOriginalDateTime(string filePath)
         if (image.GetExifProfile() != null)
         {
             DateTime originalDateTime;
+
             if (DateTime.TryParseExact(image.GetAttribute("exif:DateTimeOriginal"), "yyyy:MM:dd HH:mm:ss", null, System.Globalization.DateTimeStyles.None, out originalDateTime))
             {
                 return originalDateTime;
@@ -83,4 +108,12 @@ static DateTime GetOriginalDateTime(string filePath)
         }
     }
     return DateTime.MinValue;
+}
+
+// Export the unprocessed pictures in the output file
+static void ExportToUnprocessedFilesList(string filePath)
+{
+    // The file is not a Photo, exporting its path in the output.txt file
+    string outputFilePath = Path.Combine(Path.GetDirectoryName(filePath), "output.txt");
+    File.AppendAllText(outputFilePath, filePath + Environment.NewLine);
 }
