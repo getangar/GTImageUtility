@@ -86,7 +86,7 @@ else
                     }
                 }
 
-                // Aggiornamento dell'avanzamento
+                // Update the progress...
                 lock (Console.Out)
                 {
                     filesProcessed++;
