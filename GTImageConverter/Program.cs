@@ -1,9 +1,8 @@
 ﻿using ImageMagick;
 
 var inputPath = @"C:\Temp\Images";  // Set the path to the folder containing the HEIC files
-var outputPath = inputPath;  // Use the same path for output files or change it if necessary
-
 var files = Directory.GetFiles(inputPath, "*.HEIC", SearchOption.AllDirectories);
+
 foreach (var file in files)
 {
     try
