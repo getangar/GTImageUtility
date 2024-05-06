@@ -5,7 +5,7 @@ VisualStudioVersion = 17.5.002.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GTImageDateFix", "GTImageDateFix\GTImageDateFix.csproj", "{0574D1BC-8C9E-4BC6-AA71-4F819BA6D769}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GTImageConverter", "GTImageConverter\GTImageConverter.csproj", "{AF7E9C61-AEEA-4086-8CCB-C8D5F04C3A93}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GTHEICImageConverter", "GTImageConverter\GTHEICImageConverter.csproj", "{AF7E9C61-AEEA-4086-8CCB-C8D5F04C3A93}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
