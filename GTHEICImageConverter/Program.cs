@@ -1,6 +1,6 @@
 ﻿using ImageMagick;
 
-var inputPath = @"C:\Temp\Images";  // Set the path to the folder containing the HEIC files
+var inputPath = @"C:\Users\gennaro.GENNAROTANGARI\OneDrive\Documents\Genealogy";  // Set the path to the folder containing the HEIC files
 var files = Directory.GetFiles(inputPath, "*.HEIC", SearchOption.AllDirectories);
 
 foreach (var file in files)

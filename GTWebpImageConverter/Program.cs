@@ -2,7 +2,7 @@
 using SixLabors.ImageSharp.Formats.Jpeg;
 
 // Define the directory path to scan for .webp files
-string directoryPath = @"C:\Temp\Images";
+string directoryPath = @"C:\Users\gennaro.GENNAROTANGARI\OneDrive\Desktop\New folder";
 
 // Check if directory exists
 if (!Directory.Exists(directoryPath))
